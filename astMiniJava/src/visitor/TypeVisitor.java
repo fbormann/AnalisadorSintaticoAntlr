@@ -37,4 +37,5 @@ public interface TypeVisitor {
   public Type visit(NewObject n);
   public Type visit(Not n);
   public Type visit(Identifier n);
+ 
 }

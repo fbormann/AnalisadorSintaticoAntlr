@@ -224,6 +224,8 @@ public class TypeCheckVisitor implements TypeVisitor {
 		n.e2.accept(this);
 		return null;
 	}
+	
+	
 
 	// Exp e1,e2;
 	public Type visit(Times n) {
@@ -300,4 +302,6 @@ public class TypeCheckVisitor implements TypeVisitor {
 	public Type visit(Identifier n) {
 		return null;
 	}
+	
+	
 }

@@ -3,29 +3,16 @@ package test;
 import java.util.List;
 
 import org.antlr.v4.runtime.RuleContext;
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeVisitor;
+import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import ast.ClassDecl;
-import ast.ClassDeclExtends;
-import ast.ClassDeclList;
-import ast.ClassDeclSimple;
-import ast.Identifier;
-import ast.MainClass;
-import ast.MethodDeclList;
-import ast.Program;
-import ast.Statement;
-import ast.Type;
-import ast.VarDeclList;
-import test.miniJavaParser.ClassDeclarationContext;
-import test.miniJavaParser.GoalContext;
-import test.miniJavaParser.MainClassContext;
-import test.miniJavaParser.MethodDeclarationContext;
-import test.miniJavaParser.StatementContext;
-import test.miniJavaParser.TypeContext;
-import test.miniJavaParser.VarDeclarationContext;
+import ast.*;
+import test.miniJavaParser.*;
 
-public class BuildAST {
+public class BuildAST  {
 
 	MainClass mainClass;
 	ClassDeclList classDeclList;
@@ -76,53 +63,171 @@ public class BuildAST {
 		return classDecList;
 	}
 	private ClassDecl visiClassDeclExtends(ClassDeclarationContext c) {
-		Identifier id1 = this.visiIdentifier(c.Identifier(0));
-		Identifier id2 = this.visiIdentifier(c.Identifier(1));
+		Identifier id1 = this.visitIdentifier(c.Identifier(0));
+		Identifier id2 = this.visitIdentifier(c.Identifier(1));
 		VarDeclList varList = this.visiVarDeclList(c.varDeclaration());
 		MethodDeclList ml = this.visitMethodDeclList(c.methodDeclaration());
 		return new ClassDeclExtends(id1, id2, varList, ml);
 	}
 	private ClassDecl visiClassDecl(ClassDeclarationContext c) {
 		
-		Identifier id = this.visiIdentifier(c.Identifier(0));
+		Identifier id = this.visitIdentifier(c.Identifier(0));
 		VarDeclList varList = this.visiVarDeclList(c.varDeclaration());
 		MethodDeclList ml = this.visitMethodDeclList(c.methodDeclaration());
 		return new ClassDeclSimple(id, varList, ml);
 	}
 	private MethodDeclList visitMethodDeclList(List<MethodDeclarationContext> methodDeclaration) {
+		MethodDeclList mlist = new MethodDeclList();
 		for(MethodDeclarationContext m : methodDeclaration){
-			this.visiMethodDecl(m);
+			mlist.addElement(this.visiMethodDecl(m));
 		}
+		return mlist;
+	}
+	private MethodDecl visiMethodDecl(MethodDeclarationContext m) {
+		Identifier id = this.visitIdentifier(m.Identifier(0));
+		Type t = this.visitType(m.type(0));
+		//FormalList = this.visitFormalList()
+		VarDeclList val = this.visiVarDeclList(m.varDeclaration());
+		StatementList sts = this.visiStatementList(m.statement());
+		Exp expr = this.visitExpression(m.expression());
+		return new MethodDecl(t,id,null,val,sts,expr);
+	}
+	private Exp visitExpression(ExpressionContext expression) {
+		if(expression.isEmpty()){
+			return null;
+		}else if(!expression.expression().isEmpty()){
+			if(expression.getChild(1).getText().equals(".")){ 
+				if(expression.getChild(2).getText().equals("length")){
+					return new ArrayLength(this.visitExpression(expression.expression(0)));
+				}
+				//If it's not a arraylength it will be a call
+				return new Call(this.visitExpression(expression.expression(0)),
+						this.visitIdentifier(expression.Identifier()),
+						this.visitExpressionList(expression.expression().subList(1, 
+								expression.expression().size()-1)));
+			}
+			switch(expression.getChild(1).getText()){
+				case "&&":
+					return new And(this.visitExpression(expression.expression(0)),
+							this.visitExpression(expression.expression(1)));
+					
+				case "*":
+					return new Times(this.visitExpression(expression.expression(0)),
+							this.visitExpression(expression.expression(1)));
+					
+				case "<":
+					return new LessThan(this.visitExpression(expression.expression(0)),
+							this.visitExpression(expression.expression(1)));
+					
+				case "-":
+					return new Minus(this.visitExpression(expression.expression(0)),
+							this.visitExpression(expression.expression(1)));
+				case "[":
+					return new ArrayLookup(this.visitExpression(expression.expression(0)),
+							this.visitExpression(expression.expression(1)));
+				
+			}
+			
+			this.visitExpressionList(expression.expression());
+		}else if(expression.getChild(0).getText().equals("new")){
+			return new NewObject(this.visitIdentifier(expression.Identifier()));
+		}else if(expression.getChildCount() == 1){
+			if(expression.getChild(0).getText().equals("this")) return new This();
+			if(expression.getChild(0).getText().equals("true")) return new True();
+			if(expression.getChild(0).getText().equals("false")) return new False();
+		
+			try{
+				int x = Integer.parseInt(expression.getChild(0).getText());
+				return new IntegerLiteral(x);
+			}catch(Exception e){
+				
+			}
+		}else if(expression.getChild(0).getText().equals("!")){
+			return new Not(this.visitExpression(expression.expression(0)));
+		}
+			
 		return null;
 	}
-	private void visiMethodDecl(MethodDeclarationContext m) {
-		Identifier id = this.visiIdentifier(m.Identifier(0));
-		Type t = this.visiType(m.type(0));
+	private Exp visitIdentifierExp(TerminalNode identifier) {
 		
-		
+		return new IdentifierExp(identifier.getText());
 	}
-	private Type visiType(TypeContext type) {
+	private StatementList visiStatementList(List<StatementContext> statements) {
+		StatementList st = new StatementList();
+		for(StatementContext s : statements){
+			st.addElement(this.visitStatement(s));
+		}
+		return st;
+	}
+	private Type visitIdentifierType(TypeContext type) {
 		
+		return new IdentifierType(type.getText());
+	}
+	private Type visitType(TypeContext type) {
+		if (type.getText() == "int"){
+			return new IntegerType();
+		}else if(type.getText() == "boolean"){
+			return new BooleanType();
+		}
 		return null;
 	}
 	private VarDeclList visiVarDeclList(List<VarDeclarationContext> varDeclaration) {
 		
 		return null;
 	}
-	private Identifier visiIdentifier(TerminalNode identifier) {
+	private Identifier visitIdentifier(TerminalNode identifier) {
 		
-		return null;
+		return new Identifier(identifier.toString());
 	}
 	private MainClass visitMainClass(MainClassContext mainContext) {
-		Identifier id1  = this.visiIdentifier(mainContext.Identifier(0));
-		Identifier id2 = this.visiIdentifier(mainContext.Identifier(1));
+		Identifier id1  = this.visitIdentifier(mainContext.Identifier(0));
+		Identifier id2 = this.visitIdentifier(mainContext.Identifier(1));
 		Statement st =  this.visitStatement(mainContext.statement());
-		return null;
+		
+		return new MainClass(id1, id2, st);
 	}
 	private Statement visitStatement(StatementContext statement) {
+		if(statement.isEmpty()){
+			return null;
+		}
+		
+		if(statement.getChild(0).getText().equals("System.out.println")){
+			return new Print(this.visitExpression(statement.expression(0)));
+		}else if(statement.getChild(0).getText().equals("while")){
+			return new While(this.visitExpression(statement.expression(0)), 
+					this.visitStatement(statement.statement(0)));
+		}else if(statement.getChild(0).getText().equals("if")){
+			return new If(this.visitExpression(statement.expression(0)),
+					this.visitStatement(statement.statement(0)), this.visitStatement(statement.statement(1)));
+		}else if(statement.getChild(0).getText().equals("{")){
+			return this.visitBlock(statement.statement());
+		}
+	
 		
 		return null;
 	}
+	
+	
+	private Block visitBlock(List<StatementContext> statement) {
+		
+		return new Block(this.visitStatementList(statement));
+	}
+	private StatementList visitStatementList(List<StatementContext> statement) {
+		StatementList stL = new StatementList();
+		for( StatementContext stctx : statement){
+			stL.addElement(this.visitStatement(stctx));
+		}
+		return stL;
+	}
+	private ExpList visitExpressionList(List<ExpressionContext> expressions) {
+		//TODO: return statement from here
+		ExpList expList = new ExpList();
+		for(ExpressionContext exp : expressions){
+			expList.addElement(this.visitExpression(exp));
+		}
+		return expList;
+	}
+	
 	
 	
 }
