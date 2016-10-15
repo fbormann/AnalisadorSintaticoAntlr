@@ -16,3 +16,9 @@ class Fac {
     }
 
 }
+
+class Test {
+	public int computeTest(int x){
+		return x;
+	}
+}

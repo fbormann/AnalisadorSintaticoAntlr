@@ -9,6 +9,8 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import ast.Program;
+
 
 public class Main {
 
@@ -18,12 +20,16 @@ public class Main {
 			stream = new FileInputStream("teste.txt");
 			ANTLRInputStream input = new ANTLRInputStream(stream);
 			miniJavaLexer lexer = new miniJavaLexer(input);
-			CommonTokenStream token = new CommonTokenStream(lexer);
-			miniJavaParser parser = new miniJavaParser(token);
-			ParseTree tree = parser.goal();
-			for(int i = 0; i < tree.getChildCount(); i+=1){
-				System.out.println(tree.getChild(i).getText());
-			}
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
+			
+			miniJavaParser parser = new miniJavaParser(tokens);
+			//ParseTree tree = parser.goal();
+			
+			BuildAST builder = new BuildAST();
+			
+			
+			Program prog = builder.visitGoal(parser.goal());;
+			
 		
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
