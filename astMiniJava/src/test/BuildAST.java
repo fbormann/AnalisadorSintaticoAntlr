@@ -93,6 +93,9 @@ public class BuildAST  {
 		return new MethodDecl(t,id,null,val,sts,expr);
 	}
 	private Exp visitExpression(ExpressionContext expression) {
+		if(expression == null){
+			return null;
+		}
 		if(expression.isEmpty()){
 			return null;
 		}else if(!expression.expression().isEmpty()){
@@ -129,13 +132,18 @@ public class BuildAST  {
 			}
 			
 			this.visitExpressionList(expression.expression());
-		}else if(expression.getChild(0).getText().equals("new")){
-			return new NewObject(this.visitIdentifier(expression.Identifier()));
 		}else if(expression.getChildCount() == 1){
+			if(expression.getChild(0).getText().equals("new")){
+				if(expression.Identifier() != null) return new NewObject(this.visitIdentifier(expression.Identifier()));
+				return new NewArray (this.visitExpression(expression.expression(0)));
+			}
 			if(expression.getChild(0).getText().equals("this")) return new This();
 			if(expression.getChild(0).getText().equals("true")) return new True();
 			if(expression.getChild(0).getText().equals("false")) return new False();
-		
+			
+			if(expression.getChild(0).getText().equals("!")){
+				return new Not(this.visitExpression(expression.expression(0)));
+			}
 			try{
 				int x = Integer.parseInt(expression.getChild(0).getText());
 				return new IntegerLiteral(x);
@@ -144,11 +152,13 @@ public class BuildAST  {
 			}
 			
 				
-		}else if(expression.getChild(0).getText().equals("!")){
-			return new Not(this.visitExpression(expression.expression(0)));
-		}
 			
+		}
+		
+		if(expression.expression() != null){
 		return this.visitExpression(expression.expression(0));
+		}
+		return null;
 	}
 	private Exp visitIdentifierExp(TerminalNode identifier) {
 		
@@ -170,6 +180,8 @@ public class BuildAST  {
 			return new IntegerType();
 		}else if(type.getText().equals("boolean")){
 			return new BooleanType();
+		}else if(type.getText().equals("int[]")){
+			return new IntArrayType();
 		}
 		return null;
 	}

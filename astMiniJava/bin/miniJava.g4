@@ -1,6 +1,6 @@
 grammar miniJava;
 
-Identifier : [a-zA-Z]+;
+Identifier : [a-zA-Z0-9_]+;
 INTEGER_LITERAL : [0-9]+;
 ESPACOS: [' \r\n\t']+ ->skip; //Esta regra ignora espaços em branco e quebra de linha	
 

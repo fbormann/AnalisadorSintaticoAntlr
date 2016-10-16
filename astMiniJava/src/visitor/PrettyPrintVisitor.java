@@ -311,7 +311,7 @@ public class PrettyPrintVisitor implements Visitor {
 	// Identifier i;
 	// ExpList el;
 	public void visit(Call n) {
-		n.e.accept(this);
+		if(n.e != null) n.e.accept(this);
 		System.out.print(".");
 		n.i.accept(this);
 		System.out.print("(");
