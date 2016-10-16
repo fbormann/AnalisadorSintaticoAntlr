@@ -69,16 +69,20 @@ public class PrettyPrintVisitor implements Visitor {
 		System.out.print("class ");
 		n.i.accept(this);
 		System.out.println(" { ");
-		for (int i = 0; i < n.vl.size(); i++) {
-			System.out.print("  ");
-			n.vl.elementAt(i).accept(this);
-			if (i + 1 < n.vl.size()) {
-				System.out.println();
+		if(n.vl != null){
+			for (int i = 0; i < n.vl.size(); i++) {
+				System.out.print("  ");
+				n.vl.elementAt(i).accept(this);
+				if (i + 1 < n.vl.size()) {
+					System.out.println();
+				}
 			}
 		}
-		for (int i = 0; i < n.ml.size(); i++) {
-			System.out.println();
-			n.ml.elementAt(i).accept(this);
+		if(n.ml != null){
+			for (int i = 0; i < n.ml.size(); i++) {
+				System.out.println();
+				n.ml.elementAt(i).accept(this);
+			}
 		}
 		System.out.println();
 		System.out.println("}");
@@ -130,17 +134,21 @@ public class PrettyPrintVisitor implements Visitor {
 		System.out.print(" ");
 		n.i.accept(this);
 		System.out.print(" (");
-		for (int i = 0; i < n.fl.size(); i++) {
-			n.fl.elementAt(i).accept(this);
-			if (i + 1 < n.fl.size()) {
-				System.out.print(", ");
+		if(n.fl != null){
+			for (int i = 0; i < n.fl.size(); i++) {
+				n.fl.elementAt(i).accept(this);
+				if (i + 1 < n.fl.size()) {
+					System.out.print(", ");
+				}
 			}
 		}
 		System.out.println(") { ");
-		for (int i = 0; i < n.vl.size(); i++) {
-			System.out.print("    ");
-			n.vl.elementAt(i).accept(this);
-			System.out.println("");
+		if(n.vl != null){
+			for (int i = 0; i < n.vl.size(); i++) {
+				System.out.print("    ");
+				n.vl.elementAt(i).accept(this);
+				System.out.println("");
+			}
 		}
 		for (int i = 0; i < n.sl.size(); i++) {
 			System.out.print("    ");

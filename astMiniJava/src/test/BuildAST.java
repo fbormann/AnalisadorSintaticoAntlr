@@ -65,14 +65,14 @@ public class BuildAST  {
 	private ClassDecl visiClassDeclExtends(ClassDeclarationContext c) {
 		Identifier id1 = this.visitIdentifier(c.Identifier(0));
 		Identifier id2 = this.visitIdentifier(c.Identifier(1));
-		VarDeclList varList = this.visiVarDeclList(c.varDeclaration());
+		VarDeclList varList = this.visitVarDeclList(c.varDeclaration());
 		MethodDeclList ml = this.visitMethodDeclList(c.methodDeclaration());
 		return new ClassDeclExtends(id1, id2, varList, ml);
 	}
 	private ClassDecl visiClassDecl(ClassDeclarationContext c) {
 		
 		Identifier id = this.visitIdentifier(c.Identifier(0));
-		VarDeclList varList = this.visiVarDeclList(c.varDeclaration());
+		VarDeclList varList = this.visitVarDeclList(c.varDeclaration());
 		MethodDeclList ml = this.visitMethodDeclList(c.methodDeclaration());
 		return new ClassDeclSimple(id, varList, ml);
 	}
@@ -87,7 +87,7 @@ public class BuildAST  {
 		Identifier id = this.visitIdentifier(m.Identifier(0));
 		Type t = this.visitType(m.type(0));
 		//FormalList = this.visitFormalList()
-		VarDeclList val = this.visiVarDeclList(m.varDeclaration());
+		VarDeclList val = this.visitVarDeclList(m.varDeclaration());
 		StatementList sts = this.visiStatementList(m.statement());
 		Exp expr = this.visitExpression(m.expression());
 		return new MethodDecl(t,id,null,val,sts,expr);
@@ -104,7 +104,7 @@ public class BuildAST  {
 				return new Call(this.visitExpression(expression.expression(0)),
 						this.visitIdentifier(expression.Identifier()),
 						this.visitExpressionList(expression.expression().subList(1, 
-								expression.expression().size()-1)));
+								expression.expression().size())));
 			}
 			switch(expression.getChild(1).getText()){
 				case "&&":
@@ -140,13 +140,15 @@ public class BuildAST  {
 				int x = Integer.parseInt(expression.getChild(0).getText());
 				return new IntegerLiteral(x);
 			}catch(Exception e){
-				
+				return new IdentifierExp(expression.getChild(0).getText());
 			}
+			
+				
 		}else if(expression.getChild(0).getText().equals("!")){
 			return new Not(this.visitExpression(expression.expression(0)));
 		}
 			
-		return null;
+		return this.visitExpression(expression.expression(0));
 	}
 	private Exp visitIdentifierExp(TerminalNode identifier) {
 		
@@ -164,16 +166,23 @@ public class BuildAST  {
 		return new IdentifierType(type.getText());
 	}
 	private Type visitType(TypeContext type) {
-		if (type.getText() == "int"){
+		if (type.getText().equals("int")){
 			return new IntegerType();
-		}else if(type.getText() == "boolean"){
+		}else if(type.getText().equals("boolean")){
 			return new BooleanType();
 		}
 		return null;
 	}
-	private VarDeclList visiVarDeclList(List<VarDeclarationContext> varDeclaration) {
+	private VarDeclList visitVarDeclList(List<VarDeclarationContext> varDeclaration) {
+		VarDeclList vlist = new VarDeclList();
+		for(VarDeclarationContext ctx : varDeclaration){
+			vlist.addElement(this.visitVarDecl(ctx));
+		}
+		return vlist;
+	}
+	private VarDecl visitVarDecl(VarDeclarationContext ctx) {
 		
-		return null;
+		return new VarDecl(this.visitType(ctx.type()),this.visitIdentifier(ctx.Identifier()));
 	}
 	private Identifier visitIdentifier(TerminalNode identifier) {
 		
@@ -201,13 +210,26 @@ public class BuildAST  {
 					this.visitStatement(statement.statement(0)), this.visitStatement(statement.statement(1)));
 		}else if(statement.getChild(0).getText().equals("{")){
 			return this.visitBlock(statement.statement());
+		}else if(statement.getChild(1).getText().equals("=")){
+			return this.visitAssign(statement.Identifier(),
+					statement.expression(0));
+		}else{
+			return this.visitArrayAssign(statement.Identifier(),statement.expression(0),
+					statement.expression(1));
 		}
-	
-		
-		return null;
 	}
 	
 	
+	private Statement visitArrayAssign(TerminalNode identifier, ExpressionContext expression,
+			ExpressionContext expression2) {
+		
+		return new ArrayAssign(this.visitIdentifier(identifier), this.visitExpression(expression),
+				this.visitExpression(expression2));
+	}
+	private Statement visitAssign(TerminalNode terminalNode, ExpressionContext expressionContext) {
+		
+		return new Assign(this.visitIdentifier(terminalNode), this.visitExpression(expressionContext));
+	}
 	private Block visitBlock(List<StatementContext> statement) {
 		
 		return new Block(this.visitStatementList(statement));

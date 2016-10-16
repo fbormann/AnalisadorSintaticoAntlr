@@ -10,6 +10,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import ast.Program;
+import visitor.PrettyPrintVisitor;
 
 
 public class Main {
@@ -29,7 +30,8 @@ public class Main {
 			
 			
 			Program prog = builder.visitGoal(parser.goal());;
-			
+			PrettyPrintVisitor ptv = new PrettyPrintVisitor();
+			prog.accept(ptv);
 		
 		} catch (FileNotFoundException e) {
 			
