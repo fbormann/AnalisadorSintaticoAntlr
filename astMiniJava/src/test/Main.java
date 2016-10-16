@@ -29,7 +29,7 @@ public class Main {
 			BuildAST builder = new BuildAST();
 			
 			
-			Program prog = builder.visitGoal(parser.goal());;
+			Program prog = builder.visitGoal(parser.goal());
 			PrettyPrintVisitor ptv = new PrettyPrintVisitor();
 			prog.accept(ptv);
 		
