@@ -1,5 +1,5 @@
-// Generated from miniJava.g4 by ANTLR 4.4
 package test;
+// Generated from miniJava.g4 by ANTLR 4.4
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -48,6 +48,26 @@ public interface miniJavaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMainClass(@NotNull miniJavaParser.MainClassContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link miniJavaParser#formalList}.
+	 * @param ctx the parse tree
+	 */
+	void enterFormalList(@NotNull miniJavaParser.FormalListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link miniJavaParser#formalList}.
+	 * @param ctx the parse tree
+	 */
+	void exitFormalList(@NotNull miniJavaParser.FormalListContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link miniJavaParser#formalRest}.
+	 * @param ctx the parse tree
+	 */
+	void enterFormalRest(@NotNull miniJavaParser.FormalRestContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link miniJavaParser#formalRest}.
+	 * @param ctx the parse tree
+	 */
+	void exitFormalRest(@NotNull miniJavaParser.FormalRestContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link miniJavaParser#statement}.
 	 * @param ctx the parse tree

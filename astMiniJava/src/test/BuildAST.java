@@ -84,13 +84,30 @@ public class BuildAST  {
 		return mlist;
 	}
 	private MethodDecl visiMethodDecl(MethodDeclarationContext m) {
-		Identifier id = this.visitIdentifier(m.Identifier(0));
-		Type t = this.visitType(m.type(0));
-		//FormalList = this.visitFormalList()
+		Identifier id = this.visitIdentifier(m.Identifier());
+		Type t = this.visitType(m.type());
+		FormalList fl = this.visitFormalList(m.formalList());
 		VarDeclList val = this.visitVarDeclList(m.varDeclaration());
 		StatementList sts = this.visiStatementList(m.statement());
 		Exp expr = this.visitExpression(m.expression());
-		return new MethodDecl(t,id,null,val,sts,expr);
+		return new MethodDecl(t,id,fl,val,sts,expr);
+	}
+	private FormalList visitFormalList(FormalListContext formalList) {
+		FormalList list = new FormalList();
+		Identifier id = this.visitIdentifier(formalList.Identifier());
+		Type t = this.visitType(formalList.type());
+		list.addElement(new Formal(t,id));
+		for (FormalRestContext ctx : formalList.formalRest()){
+			list.addElement(this.visitFormalRest(ctx));
+		}
+		
+		
+		return list;
+	}
+	private Formal visitFormalRest(FormalRestContext ctx) {
+		Identifier id = this.visitIdentifier(ctx.Identifier());
+		Type t = this.visitType(ctx.type());
+		return new Formal(t, id);
 	}
 	private Exp visitExpression(ExpressionContext expression) {
 		if(expression == null){
@@ -132,7 +149,7 @@ public class BuildAST  {
 			}
 			
 			this.visitExpressionList(expression.expression());
-		}else if(expression.getChildCount() == 1){
+		}else if(expression.getChildCount() >= 1){
 			if(expression.getChild(0).getText().equals("new")){
 				if(expression.Identifier() != null) return new NewObject(this.visitIdentifier(expression.Identifier()));
 				return new NewArray (this.visitExpression(expression.expression(0)));

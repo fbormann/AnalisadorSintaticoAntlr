@@ -13,9 +13,15 @@ classDeclaration :  'class' Identifier ('extends' Identifier)? '{' (varDeclarati
 
 varDeclaration : type Identifier ';' ;
 
-methodDeclaration : 'public' type Identifier '(' (type Identifier (',' type Identifier)*)? ')'
+methodDeclaration : 'public' type Identifier '(' formalList ')'
 	'{' (varDeclaration)* (statement)* 'return' expression ';' '}' ;
 	
+formalList: type Identifier (formalRest)*
+
+;
+formalRest: ',' type Identifier
+;
+
 type : 'int' '[' ']'
 	| 'boolean'
 	| 'int'

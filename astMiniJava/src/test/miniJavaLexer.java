@@ -1,5 +1,5 @@
-// Generated from miniJava.g4 by ANTLR 4.4
 package test;
+// Generated from miniJava.g4 by ANTLR 4.4
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
