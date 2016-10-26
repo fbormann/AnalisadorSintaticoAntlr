@@ -134,7 +134,7 @@ public class PrettyPrintVisitor implements Visitor {
 		System.out.print(" ");
 		n.i.accept(this);
 		System.out.print(" (");
-		if(n.fl != null && !n.fl.elementAt(0).i.s.equals("<missing Identifier>")){
+		if(n.fl != null){
 			for (int i = 0; i < n.fl.size(); i++) {
 				n.fl.elementAt(i).accept(this);
 				if (i + 1 < n.fl.size()) {

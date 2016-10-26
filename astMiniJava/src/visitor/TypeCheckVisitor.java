@@ -1,5 +1,7 @@
 package visitor;
 
+import symboltable.Method;
+import symboltable.Class;
 import symboltable.SymbolTable;
 import ast.And;
 import ast.ArrayAssign;
@@ -40,8 +42,9 @@ import ast.While;
 public class TypeCheckVisitor implements TypeVisitor {
 
 	private SymbolTable symbolTable;
-
-	TypeCheckVisitor(SymbolTable st) {
+	private Method m;
+	private Class c;
+	public TypeCheckVisitor(SymbolTable st) {
 		symbolTable = st;
 	}
 
@@ -49,6 +52,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// ClassDeclList cl;
 	public Type visit(Program n) {
 		n.m.accept(this);
+		
 		for (int i = 0; i < n.cl.size(); i++) {
 			n.cl.elementAt(i).accept(this);
 		}
@@ -58,9 +62,12 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Identifier i1,i2;
 	// Statement s;
 	public Type visit(MainClass n) {
-		n.i1.accept(this);
-		n.i2.accept(this);
+		this.c = symbolTable.getClass(n.i1.s);
+		this.m = symbolTable.getMethod("main", c.getId());
+		//n.i1.accept(this);
+		//n.i2.accept(this);
 		n.s.accept(this);
+		this.c = null;
 		return null;
 	}
 
@@ -68,13 +75,15 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// VarDeclList vl;
 	// MethodDeclList ml;
 	public Type visit(ClassDeclSimple n) {
-		n.i.accept(this);
+		this.c = symbolTable.getClass(n.i.s);
+		//n.i.accept(this);
 		for (int i = 0; i < n.vl.size(); i++) {
 			n.vl.elementAt(i).accept(this);
 		}
 		for (int i = 0; i < n.ml.size(); i++) {
 			n.ml.elementAt(i).accept(this);
 		}
+		this.c = null;
 		return null;
 	}
 
@@ -83,6 +92,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// VarDeclList vl;
 	// MethodDeclList ml;
 	public Type visit(ClassDeclExtends n) {
+		this.c = symbolTable.getClass(n.i.s);
 		n.i.accept(this);
 		n.j.accept(this);
 		for (int i = 0; i < n.vl.size(); i++) {
@@ -91,6 +101,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 		for (int i = 0; i < n.ml.size(); i++) {
 			n.ml.elementAt(i).accept(this);
 		}
+		this.c = null;
 		return null;
 	}
 
@@ -99,7 +110,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 	public Type visit(VarDecl n) {
 		n.t.accept(this);
 		n.i.accept(this);
-		return null;
+		return n.t;
 	}
 
 	// Type t;
@@ -109,8 +120,10 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// StatementList sl;
 	// Exp e;
 	public Type visit(MethodDecl n) {
+		this.m = this.symbolTable.getMethod(n.i.s, c.getId());
+		
 		n.t.accept(this);
-		n.i.accept(this);
+		Type t = symbolTable.getMethodType(n.i.s, c.getId());
 		for (int i = 0; i < n.fl.size(); i++) {
 			n.fl.elementAt(i).accept(this);
 		}
@@ -121,7 +134,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 			n.sl.elementAt(i).accept(this);
 		}
 		n.e.accept(this);
-		return null;
+		return t;
 	}
 
 	// Type t;
@@ -133,15 +146,15 @@ public class TypeCheckVisitor implements TypeVisitor {
 	}
 
 	public Type visit(IntArrayType n) {
-		return null;
+		return new IntArrayType();
 	}
 
 	public Type visit(BooleanType n) {
-		return null;
+		return new BooleanType();
 	}
 
 	public Type visit(IntegerType n) {
-		return null;
+		return new IntegerType();
 	}
 
 	// String s;
@@ -160,7 +173,8 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Exp e;
 	// Statement s1,s2;
 	public Type visit(If n) {
-		n.e.accept(this);
+		Type t = n.e.accept(this);
+		boolean result = this.symbolTable.compareTypes(t, new BooleanType());
 		n.s1.accept(this);
 		n.s2.accept(this);
 		return null;
@@ -183,8 +197,11 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Identifier i;
 	// Exp e;
 	public Type visit(Assign n) {
-		n.i.accept(this);
-		n.e.accept(this);
+		Type t1 = n.i.accept(this);
+		Type t2 = n.e.accept(this);
+		boolean result = this.symbolTable.compareTypes(t1, t2);
+		System.out.println("There was a type error");
+		System.exit(0);
 		return null;
 	}
 
@@ -206,22 +223,26 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Exp e1,e2;
 	public Type visit(LessThan n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
+		
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		boolean equal = this.symbolTable.compareTypes(t1, t2);
 		return null;
 	}
 
 	// Exp e1,e2;
 	public Type visit(Plus n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		boolean equal = this.symbolTable.compareTypes(t1, t2);
 		return null;
 	}
 
 	// Exp e1,e2;
 	public Type visit(Minus n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		boolean equal = this.symbolTable.compareTypes(t1, t2);
 		return null;
 	}
 	
@@ -229,8 +250,9 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Exp e1,e2;
 	public Type visit(Times n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		boolean equal = this.symbolTable.compareTypes(t1, t2);
 		return null;
 	}
 
@@ -251,30 +273,41 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Identifier i;
 	// ExpList el;
 	public Type visit(Call n) {
+		Class ctemp = this.c;
+		Method mtemp = this.m;
 		n.e.accept(this);
-		n.i.accept(this);
+		Type methodType = symbolTable.getMethodType(n.i.s, this.c.getId());
+		Type expType = null;
 		for (int i = 0; i < n.el.size(); i++) {
-			n.el.elementAt(i).accept(this);
+			if(n.el.elementAt(i) != null){ 
+				expType = n.el.elementAt(i).accept(this);
+			}
 		}
-		return null;
+		this.c = ctemp;
+		this.m = mtemp;
+		if(methodType == null){
+			return expType;
+		}else{
+			return methodType;
+		}
 	}
 
 	// int i;
 	public Type visit(IntegerLiteral n) {
-		return null;
+		return  new IntegerType();
 	}
 
 	public Type visit(True n) {
-		return null;
+		return new BooleanType();
 	}
 
 	public Type visit(False n) {
-		return null;
+		return new BooleanType();
 	}
 
 	// String s;
 	public Type visit(IdentifierExp n) {
-		return null;
+		return symbolTable.getVarType(m, c, n.s);
 	}
 
 	public Type visit(This n) {
@@ -289,6 +322,8 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Identifier i;
 	public Type visit(NewObject n) {
+		this.c = this.symbolTable.getClass(n.i.s);
+		this.m = null;
 		return null;
 	}
 
@@ -300,8 +335,10 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// String s;
 	public Type visit(Identifier n) {
-		return null;
+		
+		return symbolTable.getVarType(m, c, n.s);
 	}
 	
 	
 }
+

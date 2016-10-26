@@ -10,7 +10,10 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import ast.Program;
+import symboltable.SymbolTable;
+import visitor.BuildSymbolTableVisitor;
 import visitor.PrettyPrintVisitor;
+import visitor.TypeCheckVisitor;
 
 
 public class Main {
@@ -32,7 +35,11 @@ public class Main {
 			Program prog = builder.visitGoal(parser.goal());
 			PrettyPrintVisitor ptv = new PrettyPrintVisitor();
 			prog.accept(ptv);
-		
+			
+			BuildSymbolTableVisitor sbv = new BuildSymbolTableVisitor();
+			prog.accept(sbv);
+			TypeCheckVisitor test = new TypeCheckVisitor(sbv.getSymbolTable());
+			prog.accept(test);
 		} catch (FileNotFoundException e) {
 			
 			e.printStackTrace();
