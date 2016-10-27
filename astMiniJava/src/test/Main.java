@@ -40,6 +40,8 @@ public class Main {
 			prog.accept(sbv);
 			TypeCheckVisitor test = new TypeCheckVisitor(sbv.getSymbolTable());
 			prog.accept(test);
+			
+			
 		} catch (FileNotFoundException e) {
 			
 			e.printStackTrace();

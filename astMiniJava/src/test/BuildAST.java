@@ -147,20 +147,21 @@ public class BuildAST  {
 							this.visitExpression(expression.expression(1)));
 				
 			}
-			
+			if(expression.getChild(0).getText().equals("!")){
+				return new Not(this.visitExpression(expression.expression(0)));
+			}
 			this.visitExpressionList(expression.expression());
 		}else if(expression.getChildCount() >= 1){
 			if(expression.getChild(0).getText().equals("new")){
 				if(expression.Identifier() != null) return new NewObject(this.visitIdentifier(expression.Identifier()));
 				return new NewArray (this.visitExpression(expression.expression(0)));
 			}
+			
 			if(expression.getChild(0).getText().equals("this")) return new This();
 			if(expression.getChild(0).getText().equals("true")) return new True();
 			if(expression.getChild(0).getText().equals("false")) return new False();
 			
-			if(expression.getChild(0).getText().equals("!")){
-				return new Not(this.visitExpression(expression.expression(0)));
-			}
+			
 			try{
 				int x = Integer.parseInt(expression.getChild(0).getText());
 				return new IntegerLiteral(x);
